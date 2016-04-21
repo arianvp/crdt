@@ -1,6 +1,7 @@
 module CRDT.IncrementOnlyCounter where
 import Algebra.Lattice
 import qualified Data.Map as Map
+import Data.Map ((!))
 import qualified Data.Set as Set
 import qualified Data.Foldable as Foldable
 
@@ -14,13 +15,24 @@ newtype IncrementOnlyCounter = IncrementOnlyCounter (Map.Map Int Int)
 instance Show IncrementOnlyCounter where
   show x = "IncrementOnlyCounter " ++ show (value x)
 
+local :: Int -> IncrementOnlyCounter -> Int
+local i (IncrementOnlyCounter m) = m ! i
+
+value :: IncrementOnlyCounter -> Int
+value (IncrementOnlyCounter v) = Map.foldr (+) 0 v
 
 increment :: Int -> IncrementOnlyCounter -> IncrementOnlyCounter
 increment myIndex (IncrementOnlyCounter v) =
   IncrementOnlyCounter (Map.insertWith (\a b -> a + b + 1) myIndex 1 v)
 
-value :: IncrementOnlyCounter -> Int
-value (IncrementOnlyCounter v) = Map.foldr (+) 0 v
+
+-- TODO: use state monad
+incrementWithDelta :: Int -> IncrementOnlyCounter -> (IncrementOnlyCounter, IncrementOnlyCounter)
+
+incrementWithDelta i c =
+  let newCounter = increment i c
+  in (newCounter, IncrementOnlyCounter (Map.singleton i (local i newCounter)))
+
 
 
 instance JoinSemiLattice IncrementOnlyCounter where
@@ -30,6 +42,8 @@ instance JoinSemiLattice IncrementOnlyCounter where
 
 instance BoundedJoinSemiLattice IncrementOnlyCounter where
   bottom = IncrementOnlyCounter Map.empty 
+
+
 
 
 
