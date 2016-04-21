@@ -1,35 +1,39 @@
 module CRDT.IncrementOnlyCounter where
 import Algebra.Lattice
-import qualified Data.Vector as Vector
-import Data.Vector ((!), (//))
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import qualified Data.Foldable as Foldable
 
 
 -- The increment-only counter assumes that we have a fixed network size, and a unique id
 -- within the counter.
 --
 
-newtype IncrementOnlyCounter = IncrementOnlyCounter
-  { counters :: Vector.Vector Int  -- ^contains all counters in the network
-  }
+newtype IncrementOnlyCounter = IncrementOnlyCounter (Map.Map Int Int)
+
+instance Show IncrementOnlyCounter where
+  show x = "IncrementOnlyCounter " ++ show (value x)
 
 
 increment :: Int -> IncrementOnlyCounter -> IncrementOnlyCounter
-increment myIndex (IncrementOnlyCounter counters) = IncrementOnlyCounter (counters // [(myIndex, (counters ! myIndex) + 1)])
+increment myIndex (IncrementOnlyCounter v) =
+  IncrementOnlyCounter (Map.insertWith (\a b -> a + b + 1) myIndex 1 v)
 
 value :: IncrementOnlyCounter -> Int
-value c = Vector.sum (counters c)
+value (IncrementOnlyCounter v) = Map.foldr (+) 0 v
 
 
 instance JoinSemiLattice IncrementOnlyCounter where
   (IncrementOnlyCounter v1) \/ (IncrementOnlyCounter v2) = 
-    IncrementOnlyCounter (Vector.zipWith max v1 v2)
+    IncrementOnlyCounter (Map.unionWith max v1 v2)
+
 
 instance BoundedJoinSemiLattice IncrementOnlyCounter where
-  bottom = IncrementOnlyCounter (Vector.replicate 255 0) -- A subnet is max 255 in size
-  
+  bottom = IncrementOnlyCounter Map.empty 
 
 
 
+-- Delta-mutator based Increment-only counter
 
 
 
