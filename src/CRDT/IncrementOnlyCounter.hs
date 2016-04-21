@@ -15,6 +15,15 @@ newtype IncrementOnlyCounter = IncrementOnlyCounter (Map.Map Int Int)
 instance Show IncrementOnlyCounter where
   show x = "IncrementOnlyCounter " ++ show (value x)
 
+instance JoinSemiLattice IncrementOnlyCounter where
+  (IncrementOnlyCounter v1) \/ (IncrementOnlyCounter v2) = 
+    IncrementOnlyCounter (Map.unionWith max v1 v2)
+
+
+instance BoundedJoinSemiLattice IncrementOnlyCounter where
+  bottom = IncrementOnlyCounter Map.empty 
+
+
 local :: Int -> IncrementOnlyCounter -> Int
 local i (IncrementOnlyCounter m) = m ! i
 
@@ -32,22 +41,6 @@ incrementWithDelta :: Int -> IncrementOnlyCounter -> (IncrementOnlyCounter, Incr
 incrementWithDelta i c =
   let newCounter = increment i c
   in (newCounter, IncrementOnlyCounter (Map.singleton i (local i newCounter)))
-
-
-
-instance JoinSemiLattice IncrementOnlyCounter where
-  (IncrementOnlyCounter v1) \/ (IncrementOnlyCounter v2) = 
-    IncrementOnlyCounter (Map.unionWith max v1 v2)
-
-
-instance BoundedJoinSemiLattice IncrementOnlyCounter where
-  bottom = IncrementOnlyCounter Map.empty 
-
-
-
-
-
--- Delta-mutator based Increment-only counter
 
 
 
