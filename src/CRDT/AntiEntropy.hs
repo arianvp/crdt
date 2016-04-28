@@ -1,6 +1,7 @@
-{-#LANGUAGE FlexibleContexts #-}
+{-#LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 module CRDT.AntiEntropy where
 import Algebra.Lattice
+import Data.IORef
 import Control.Monad.Writer.Class
 import Control.Monad.Random.Class
 
@@ -33,3 +34,36 @@ antiEntropyCtr :: ( MonadRandom m
                   , MonadWriter m (Join w))
                   ) => 
 -}
+
+-- JoinWriter is a writer backed by an IORef. such that multiple writers can 
+-- modify the same underlying value concurrently
+-- this only works for BoundedJoinSemiLattices as they're also idempodent
+data JoinWriter w a = JoinWriter { runJoinWriter :: IORef w -> IO a }
+
+
+instance Functor (JoinWriter w) where
+  fmap f (JoinWriter g) = JoinWriter (fmap f . g)
+
+instance Applicative (JoinWriter w) where
+  pure  = JoinWriter . const . pure
+  JoinWriter f <*> JoinWriter g = JoinWriter (\w -> f w <*> g w)
+
+instance Monad (JoinWriter w) where
+  JoinWriter f >>= g = JoinWriter (\w -> f w >>= \x -> runJoinWriter (g x) w)
+
+
+instance BoundedJoinSemiLattice w => MonadWriter (Join w) (JoinWriter (Join w)) where
+  writer (a,w) = JoinWriter (\ref -> modifyIORef ref (`mappend` w) >> return a)
+  listen (JoinWriter f) =
+    JoinWriter
+      (\ref -> do
+        w <- readIORef ref
+        v <- f ref
+        return (v,w))
+  pass (JoinWriter f) =
+    JoinWriter
+      (\ref -> do
+        (a, g) <- f ref
+        modifyIORef ref g
+        return a)
+
