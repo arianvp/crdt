@@ -37,7 +37,7 @@ antiEntropyCtr :: ( MonadRandom m
 
 -- JoinWriter is a writer backed by an IORef. such that multiple writers can 
 -- modify the same underlying value concurrently
--- this only works for BoundedJoinSemiLattices as they're also idempodent
+-- this only works for BoundedJoinSemiLattices as they're also idempodent and Commutative
 data JoinWriter w a = JoinWriter { runJoinWriter :: IORef w -> IO a }
 
 
