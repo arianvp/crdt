@@ -33,14 +33,16 @@ value :: Ord a => IncrementOnlyCounter a -> Int
 value (IncrementOnlyCounter v) = Map.foldr (+) 0 v
 
 increment :: Ord a => a -> IncrementOnlyCounter a -> IncrementOnlyCounter a
-increment myIndex (IncrementOnlyCounter v) =
-  IncrementOnlyCounter (Map.insertWith (\a b -> a + b + 1) myIndex 1 v)
+increment i (IncrementOnlyCounter v) =
+  IncrementOnlyCounter (Map.insertWith (\a b -> a + b + 1) i 1 v)
 
-incrementWithDelta :: (Ord a, MonadWriter (IncrementOnlyCounter a) m) => a -> IncrementOnlyCounter a -> m (IncrementOnlyCounter a)
-incrementWithDelta i c = do
-  let newCounter = increment i c
-  tell (IncrementOnlyCounter (Map.singleton i (local i newCounter)))
-  return newCounter
+incrementWithDelta :: (Ord a, MonadWriter (Join (IncrementOnlyCounter a)) m) => a -> IncrementOnlyCounter a -> m (IncrementOnlyCounter a)
+incrementWithDelta i c@(IncrementOnlyCounter m) = do
+  let delta = IncrementOnlyCounter (Map.singleton i (m ! i + 1))
+  tell (Join delta)
+  return (delta \/ c)
+
+
 
 {-incrementWithDelta i c =
   let newCounter = increment i c
