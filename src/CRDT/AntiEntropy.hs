@@ -53,7 +53,11 @@ instance Monad (JoinWriter w) where
 
 
 instance BoundedJoinSemiLattice w => MonadWriter (Join w) (JoinWriter (Join w)) where
-  writer (a,w) = JoinWriter (\ref -> modifyIORef ref (`mappend` w) >> return a)
+  writer (a,w) =
+    JoinWriter
+      (\ref -> do
+        modifyIORef ref (`mappend` w)
+        return a)
   listen (JoinWriter f) =
     JoinWriter
       (\ref -> do
