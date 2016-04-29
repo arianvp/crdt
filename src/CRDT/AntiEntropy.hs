@@ -35,9 +35,13 @@ antiEntropyCtr :: ( MonadRandom m
                   ) => 
 -}
 
--- JoinWriter is a writer backed by an IORef. such that multiple writers can 
--- modify the same underlying value concurrently
--- this only works for BoundedJoinSemiLattices as they're also idempodent and Commutative
+-- A JoinWriter is a very special version of the Writer monad because the underlying log
+-- is backed by an IORef that can be modified by multiple writers running at the same time.
+-- This might sound unsafe, but because of more constraints, the results are eventually
+-- consistent.  Instead of restricting the log to a monoid, we restrict the log to a
+-- bounded join-semilattice. These are also commutative and idempotent. So as long as we 
+-- can guarentee that every JoinWriter eventually receives all messages, in any order,
+-- then we know that we'll be eventually consistent.
 data JoinWriter w a = JoinWriter { runJoinWriter :: IORef w -> IO a }
 
 
