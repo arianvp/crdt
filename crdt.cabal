@@ -19,8 +19,6 @@ library
                      , CRDT.IncrementOnlyCounter.Experiment
                      , CRDT.GrowOnlySet
                      , CRDT.GrowOnlySet.Experiment
-                     , CRDT.ORSet
-                     , CRDT.ORSet.Experiment
                      , CRDT.PNCounter
                      , CRDT.PNCounter.Experiment
                      , CRDT.TwoPSet

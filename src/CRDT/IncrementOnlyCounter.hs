@@ -9,10 +9,7 @@ import qualified Data.Foldable as Foldable
 import Control.Monad.Writer.Class
 
 
--- The increment-only counter assumes that we have a fixed network size, and a unique id
--- within the counter.
---
-
+-- an Increment-only counter. Ord a is the replica index
 newtype IncrementOnlyCounter a = IncrementOnlyCounter (Map.Map a Int)
 
 instance Ord a => Show (IncrementOnlyCounter a) where
@@ -36,18 +33,10 @@ increment :: Ord a => a -> IncrementOnlyCounter a -> IncrementOnlyCounter a
 increment i (IncrementOnlyCounter v) =
   IncrementOnlyCounter (Map.insertWith (\a b -> a + b + 1) i 1 v)
 
-incrementWithDelta :: (Ord a, MonadWriter (Join (IncrementOnlyCounter a)) m) => a -> IncrementOnlyCounter a -> m (IncrementOnlyCounter a)
-incrementWithDelta i c@(IncrementOnlyCounter m) = do
-  let delta = IncrementOnlyCounter (Map.singleton i (m ! i + 1))
-  tell (Join delta)
-  return (delta \/ c)
+incrementDelta :: Ord a => a -> IncrementOnlyCounter a -> IncrementOnlyCounter a
+incrementDelta i (IncrementOnlyCounter m) = IncrementOnlyCounter (Map.singleton i (m ! i + 1))
 
-
-
-{-incrementWithDelta i c =
-  let newCounter = increment i c
-  in (newCounter, IncrementOnlyCounter (Map.singleton i (local i newCounter)))
-
--}
+increment' :: Ord a => a -> IncrementOnlyCounter a -> IncrementOnlyCounter a
+increment' i x = incrementDelta i x \/ x
 
 

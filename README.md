@@ -22,4 +22,9 @@ Note that we don't have to use locks anywhere. We only have to `join` messages i
 One property of a CRDT is that it's monotonically increasing. This means that over time, a CRDT will only grow larger and larger. The problem with this is, that we have to send the _entire_ state in the message to allow for sharing of state. This means that over time, messages will get bigger and bigger and congest the network.
 
 ## Delta-mutators
-Luckily there is a way to reduce bandwidth in safe manner. And it's based on the observation that ... 
+Luckily there is a way to reduce bandwidth in safe manner. And it's based on the observation that 
+
+
+## Not Implemented
+
+We have not implemented ORSets. They allow multiple removals of elements. (Whilst 2psets don't) but implementing them with delta-mutators whilst maintaining causality is a lot more involved and I simply did not have the time. I might implement this later
