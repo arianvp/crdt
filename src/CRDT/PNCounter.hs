@@ -29,17 +29,16 @@ value (PNCounter p n) = GCounter.value p - GCounter.value n
 increment :: Ord a => a -> PNCounter a -> PNCounter a
 increment i (PNCounter p n) = PNCounter (GCounter.increment i p) n
 
-incrementWithDelta :: Ord a => a -> PNCounter a -> (PNCounter a , PNCounter a)
+incremenDelta :: Ord a => a -> PNCounter a -> PNCounter a
 incrementWithDelta i pn =
   let newValue = increment i pn
-  in (newValue, bottom { p = p newValue })
-
+  in bottom { p = p newValue }
 
 decrement :: Ord a => a -> PNCounter a  -> PNCounter a
 decrement i (PNCounter p n) = PNCounter p (GCounter.increment i n)
 
-decrementWithDelta :: Ord a => a -> PNCounter a -> (PNCounter a, PNCounter a)
+decrementWithDelta :: Ord a => a -> PNCounter a -> PNCounter a
 decrementWithDelta i pn =
   let newValue = decrement i pn
-  in (newValue, bottom { n = n newValue })
+  in bottom { n = n newValue }
 
