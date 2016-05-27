@@ -22,9 +22,8 @@ Note that we don't have to use locks anywhere. We only have to `join` messages i
 One property of a CRDT is that it's monotonically increasing. This means that over time, a CRDT will only grow larger and larger. The problem with this is, that we have to send the _entire_ state in the message to allow for sharing of state. This means that over time, messages will get bigger and bigger and congest the network.
 
 ## Delta-mutators
-Luckily there is a way to reduce bandwidth in safe manner. And it's based on the observation that 
+Luckily there is a way to reduce bandwidth in safe manner. And it's based on the observation that the delta's of some CRDTs are CRDTs themselves.     Say I have  a Counter `c`.  Which has to keep track of every nodes internal counter value. So basically a `Map Node Int` (See `IncrementOnlyCounter.hs`).   Instead of sending the entire Map, I can send a subset of the Map with only the nodes for which the counter actually changed...  Note that this is also a `Map Node Int`, and hence also a Counter CRDT.  We can join this delta with CRDTs on other systems to propagate the updates, or join it with other deltas on other systems or deltas within the own system.  This way you can send smaller fragments over the network with the same result.
+
+One thing that we do lose is causality.  This is not really a problem with simple counter or an add-only set, but once you're going to have races between adds and removes, causality is really important.    But even this can be mitigated by the means of vector clocks.  I do not have an implementation of this mechanism though. I only implemented delta-mutators for CRDTs where causality is not a problem.  Namely  counters  and Sets where you can only remove an element _once_.
 
 
-## Not Implemented
-
-We have not implemented ORSets. They allow multiple removals of elements. (Whilst 2psets don't) but implementing them with delta-mutators whilst maintaining causality is a lot more involved and I simply did not have the time. I might implement this later
