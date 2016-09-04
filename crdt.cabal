@@ -16,20 +16,21 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     CRDT.IncrementOnlyCounter
-                     , CRDT.IncrementOnlyCounter.Experiment
                      , CRDT.GrowOnlySet
-                     , CRDT.GrowOnlySet.Experiment
                      , CRDT.PNCounter
-                     , CRDT.PNCounter.Experiment
                      , CRDT.TwoPSet
-                     , CRDT.TwoPSet.Experiment
                      , CRDT.AntiEntropy
+                     , CRDT.HyperLogLog
+                     , CRDT.Fold
   build-depends:       base >= 4.7 && < 5
                      , lattices
                      , containers
                      , vector
                      , mtl
                      , MonadRandom
+                     , hyperloglog 
+                     , reflection
+                     , strict
   default-language:    Haskell2010
 
 executable crdt-exe
